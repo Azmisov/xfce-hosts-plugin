@@ -125,7 +125,7 @@ static gboolean execute_sudo_command(const char *command, GError **error) {
 
 // Sync the /etc/hosts file with the current configured hosts and which are enabled/disabled.
 // This syncs the entire file, as there could be modifications made outside of the plugin that
-// override this plugin's changes. Returns false if unsuccessful.
+// override this plugin's changes. Returns false and shows a dialog message if unsuccessful.
 gboolean etc_hosts_sync(HostsPlugin *hosts) {
 	// nothing to sync?
 	if (!hosts->names)
@@ -148,6 +148,7 @@ gboolean etc_hosts_sync(HostsPlugin *hosts) {
 
 	// Rebuild the file with modified lines
 	gboolean localhost_seen = FALSE;
+	gboolean modified = FALSE;
 	gchar **new_lines = g_new0(gchar *, lines_length + 2); // one extra line in case we need to add another
 	for (guint i = 0; lines[i]; i++) {
 		if (g_str_has_prefix(lines[i], "127.0.0.1")) {
@@ -163,9 +164,9 @@ gboolean etc_hosts_sync(HostsPlugin *hosts) {
 			for (guint k = 0; hosts->names[k] != NULL; k++) {
 				// only add if its the first time we see localhost
 				if (!localhost_seen && hosts->enabled[k])
-					g_hash_table_add(hosts_set, g_strdup(hosts->names[k]));
+					modified |= g_hash_table_add(hosts_set, g_strdup(hosts->names[k]));
 				else
-					g_hash_table_remove(hosts_set, hosts->names[k]);
+					modified |= g_hash_table_remove(hosts_set, hosts->names[k]);
 			}
 
 			// Create the new line
@@ -193,6 +194,7 @@ gboolean etc_hosts_sync(HostsPlugin *hosts) {
 
 	// no localhost line found; add one
 	if (!localhost_seen) {
+		modified = TRUE;
 		GString *new_line = g_string_new("127.0.0.1");
 		for (guint k = 0; hosts->names[k] != NULL; k++) {
 			if (hosts->enabled[k]) {
@@ -203,6 +205,13 @@ gboolean etc_hosts_sync(HostsPlugin *hosts) {
 		new_lines[lines_length+1] = NULL;
 	}
 	else new_lines[lines_length] = NULL;
+
+	// Don't write the file (which will prompt for sudo access) if no modifications were made
+	if (!modified) {
+		DBG("No modifications to /etc/hosts needed");
+		g_strfreev(new_lines);
+		return TRUE;
+	}
 
 	g_print("New /etc/hosts file:\n");
 	for (guint i = 0; new_lines[i]; i++)

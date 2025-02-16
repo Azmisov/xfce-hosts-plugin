@@ -155,6 +155,39 @@ static void hosts_add_alias(GtkButton *button, gpointer user_data) {
 	gtk_entry_set_text(GTK_ENTRY(data->entry), "");
 }
 
+// Remove the selected host from the list
+static void hosts_delete_alias(GtkButton *button, gpointer user_data) {
+	HostsDialogData *data = (HostsDialogData *) user_data;
+
+	// get selected row
+	GtkListBoxRow *selected_row = gtk_list_box_get_selected_row(GTK_LIST_BOX(data->listbox));
+	if (!selected_row) {
+		return;
+	}
+	gint index = gtk_list_box_row_get_index(selected_row);
+
+	// Ensure hosts->enabled is false first
+	if (data->hosts->enabled[index]) {
+		data->hosts->enabled[index] = FALSE;
+
+		// Sync etc/hosts; this function displays dialog on error already
+		if (!etc_hosts_sync(data->hosts)) {
+			data->hosts->enabled[index] = TRUE;
+			return;
+		}
+	}
+
+	// Remove from hosts
+	g_free(data->hosts->names[index]);
+	for (gint i = index; data->hosts->names[i]; i++) {
+		data->hosts->names[i] = data->hosts->names[i + 1];
+		data->hosts->enabled[i] = data->hosts->enabled[i + 1];
+	}
+
+	// Remove the row from the listbox
+	gtk_container_remove(GTK_CONTAINER(data->listbox), GTK_WIDGET(selected_row));
+}
+
 // Shift an alias in the list up or down some number of positions
 static void hosts_shift_alias_generic(HostsDialogData *data, gint shift){
 	// get selected row
@@ -258,6 +291,7 @@ void hosts_configure (XfcePanelPlugin *plugin, HostsPlugin *hosts){
 		gtk_button_set_label(GTK_BUTTON(button_delete), "Delete");
 	}
 	gtk_widget_set_tooltip_text(button_delete, "Delete selected item");
+	g_signal_connect(button_delete, "clicked", G_CALLBACK(hosts_delete_alias), data);
 
 	gtk_box_pack_start(GTK_BOX(button_box), button_up, FALSE, FALSE, 0);
 	gtk_box_pack_start(GTK_BOX(button_box), button_down, FALSE, FALSE, 0);
@@ -306,7 +340,7 @@ void hosts_configure (XfcePanelPlugin *plugin, HostsPlugin *hosts){
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
 
 	// set dialog size
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 500);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 
 	// set dialog icon
 	gtk_window_set_icon_name(GTK_WINDOW(dialog), "applications-internet");
