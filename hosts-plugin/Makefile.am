@@ -13,7 +13,9 @@ plugindir = \
 
 libhosts_la_SOURCES = \
 	hosts.c \
-	hosts.h
+	hosts.h \
+	hosts-dialogs.c \
+	hosts-dialogs.h
 
 libhosts_la_CFLAGS = \
 	$(LIBXFCE4UTIL_CFLAGS) \

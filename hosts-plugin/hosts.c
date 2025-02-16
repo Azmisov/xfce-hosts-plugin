@@ -1,14 +1,18 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
 #include <gtk/gtk.h>
 #include <libxfce4util/libxfce4util.h>
 #include <libxfce4panel/libxfce4panel.h>
-#include "sample.h"
-#include "sample-dialogs.h"
+
+#include "hosts.h"
+#include "hosts-dialogs.h"
+
 /* default settings */
 #define DEFAULT_SETTING1 NULL
 #define DEFAULT_SETTING2 1
@@ -132,7 +136,7 @@ static gboolean sample_size_changed (
 	/* get the orientation of the plugin */
 	orientation = xfce_panel_plugin_get_orientation (plugin);
 	/* set the widget size */
-`	if (orientation == GTK_ORIENTATION_HORIZONTAL)
+	if (orientation == GTK_ORIENTATION_HORIZONTAL)
 		gtk_widget_set_size_request (GTK_WIDGET (plugin), -1, size);
 	else
 		gtk_widget_set_size_request (GTK_WIDGET (plugin), size, -1);

@@ -1,5 +1,5 @@
-#ifndef __ISAAC_H__
-#define __ISAAC_H__
+#ifndef __HOSTS_H__
+#define __HOSTS_H__
 
 G_BEGIN_DECLS
 
@@ -22,3 +22,5 @@ SamplePlugin;
 void sample_save (XfcePanelPlugin *plugin, SamplePlugin *sample);
 
 G_END_DECLS
+
+#endif
