@@ -79,6 +79,12 @@ AC_MSG_CHECKING([PLATFORM_LDFLAGS])
 AC_MSG_RESULT([$PLATFORM_LDFLAGS])
 AC_SUBST([PLATFORM_LDFLAGS])
 
+dnl ************************
+dnl *** INSTALL LOCATION ***
+dnl ************************
+AC_SUBST([libdir], [/usr/lib/x86_64-linux-gnu])
+AC_SUBST([datadir], [/usr/share])
+
 AC_CONFIG_FILES([
 Makefile
 hosts-plugin/Makefile

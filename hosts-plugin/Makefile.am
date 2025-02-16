@@ -45,10 +45,19 @@ hosts.desktop: hosts.desktop.in
 desktop_DATA =								\
 	hosts.desktop
 
+# Polkit policy location
+policydir =									\
+	$(datadir)/polkit-1/actions
+
+policy_DATA = \
+	org.xfce.xfce-hosts-plugin.policy
+
 EXTRA_DIST =								\
-	hosts.desktop.in
+	hosts.desktop.in						\
+	org.xfce.xfce-hosts-plugin.policy
 
 CLEANFILES =								\
-	$(desktop_DATA)
+	$(desktop_DATA)							\
+	$(policy_DATA)
 
 # vi:set ts=8 sw=8 noet ai nocindent syntax=automake:

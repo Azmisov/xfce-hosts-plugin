@@ -309,7 +309,7 @@ void hosts_configure (XfcePanelPlugin *plugin, HostsPlugin *hosts){
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 500, 500);
 
 	// set dialog icon
-	gtk_window_set_icon_name(GTK_WINDOW(dialog), "xfce4-settings");
+	gtk_window_set_icon_name(GTK_WINDOW(dialog), "applications-internet");
 
 	// link the dialog to the plugin, so we can destroy it when the plugin
 	// is closed, but the dialog is still open

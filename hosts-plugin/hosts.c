@@ -79,13 +79,11 @@ static void hosts_read(HostsPlugin *hosts) {
 	hosts->enabled = NULL;
 }
 
-
-
 static gboolean execute_sudo_command(const char *command, GError **error) {
     // 1. Construct the sudo command
     // Important: Use a safe way to build the command to avoid shell injection!
     // Never just concatenate strings directly.
-    char *sudo_command = g_strdup_printf("sudo %s", command);  // Safer than direct concatenation
+    char *sudo_command = g_strdup_printf("pkexec %s", command);  // Safer than direct concatenation
 
     // 2. Execute the command using g_spawn_command_line_sync
     // This function handles the password prompt automatically if sudo requires it.
@@ -125,27 +123,24 @@ static gboolean execute_sudo_command(const char *command, GError **error) {
     return success;
 }
 
-
-
-
 // Sync the /etc/hosts file with the current configured hosts and which are enabled/disabled.
 // This syncs the entire file, as there could be modifications made outside of the plugin that
-// override this plugin's changes.
-void etc_hosts_sync(HostsPlugin *hosts) {
+// override this plugin's changes. Returns false if unsuccessful.
+gboolean etc_hosts_sync(HostsPlugin *hosts) {
 	// nothing to sync?
 	if (!hosts->names)
-		return;
+		return TRUE;
 
-	DBG("running sudo command");
+	DBG("Syncing /etc/hosts");
 
-	// Read file; split line-by-line
+	// Read file; split line-by-line; should have read permissions to /etc/hosts
 	gsize length;
 	GError *error = NULL;
 	gchar *contents = NULL;
 	if (!g_file_get_contents("/etc/hosts", &contents, &length, &error)) {
 		g_warning("Failed to read /etc/hosts: %s", error->message);
 		g_error_free(error);
-		return;
+		return FALSE;
 	}
 	gchar **lines = g_strsplit(contents, "\n", -1);
 	guint lines_length = g_strv_length(lines);
@@ -209,23 +204,49 @@ void etc_hosts_sync(HostsPlugin *hosts) {
 	}
 	else new_lines[lines_length] = NULL;
 
+	g_print("New /etc/hosts file:\n");
+	for (guint i = 0; new_lines[i]; i++)
+		g_print("> %s\n", new_lines[i]);
+
 	// write new contents to file
 	gchar *new_contents = g_strjoinv("\n", new_lines);
 	g_strfreev(new_lines);
 
-	if (!g_file_set_contents("/etc/hosts", new_contents, -1, &error)) {
-		g_warning("Failed to write /etc/hosts: %s", error->message);
+	gboolean success = FALSE;
+	// write tmp file, then copy to /etc/hosts using sudo
+	if (g_file_set_contents("/tmp/xfce-hosts-plugin_etc_hosts", new_contents, -1, &error))
+		success = execute_sudo_command("cp /tmp/xfce-hosts-plugin_etc_hosts /etc/hosts", &error);
+	g_free(new_contents);
+
+	if (!success) {
+		// Open a dialog with the error message
+		GtkWidget *dialog = gtk_message_dialog_new(
+			NULL,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+			"xfce-hosts-plugin couldn't sync with /etc/hosts: %s", error->message
+		);
+		gtk_dialog_run(GTK_DIALOG(dialog));
+		gtk_widget_destroy(dialog);
 		g_error_free(error);
 	}
 
-	g_free(new_contents);
+	return success;
 }
 
 // Callback for toggling a host
 static void hosts_toggle(GtkCheckMenuItem *menu_item, HostToggleData *data) {
     gboolean active = gtk_check_menu_item_get_active(menu_item);
+	// don't do anything if state matches
+	if (data->hosts->enabled[data->index] == active)
+		return;
 	data->hosts->enabled[data->index] = active;
-	execute_sudo_command("cat /etc/hosts", NULL);
+	// revert if /etc/hosts sync fails
+	if (!etc_hosts_sync(data->hosts)) {
+		data->hosts->enabled[data->index] = !active;
+		gtk_check_menu_item_set_active(menu_item, !active);
+	}
 }
 
 // Show dropdown with hosts that can be toggled

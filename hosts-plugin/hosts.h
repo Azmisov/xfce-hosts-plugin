@@ -30,7 +30,7 @@ typedef struct {
 void hosts_save(XfcePanelPlugin *plugin, HostsPlugin *hosts);
 
 // Update the /etc/hosts file
-void etc_hosts_sync(HostsPlugin *hosts);
+gboolean etc_hosts_sync(HostsPlugin *hosts);
 
 G_END_DECLS
 
