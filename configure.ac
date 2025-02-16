@@ -1,18 +1,18 @@
 dnl
 dnl xfce4-hosts-plugin - Toggle host aliases for local web development
 dnl
-dnl 2025 Isaac Nygaard <ozixtheorange@gmail.com>
+dnl 2025 Isaac Nygaard
 dnl
 
 dnl ***************************
 dnl *** Version information ***
 dnl ***************************
-XDT_VERSION_INIT([0.0.4], [git])
+XDT_VERSION_INIT([0.0.1], [git])
 dnl ***************************
 dnl *** Initialize autoconf ***
 dnl ***************************
-AC_COPYRIGHT([Copyright (C) 2023
-        The Xfce development team. All rights reserved.])
+AC_COPYRIGHT([Copyright (C) 2025
+        Isaac Nygaard. All rights reserved.])
 AC_INIT([xfce4-hosts-plugin], [xdt_version])
 AC_PREREQ([2.69])
 AC_REVISION([xdt_version_build])

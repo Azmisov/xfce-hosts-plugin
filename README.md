@@ -26,3 +26,14 @@ Debugging:
 > xfce4-panel -q
 > PANEL_DEBUG=1 xfce4-panel
 ```
+
+# Usage
+
+Create a new user group with permission to modify `/etc/hosts`. This allows the xfce plugin to
+modify `/etc/hosts` without you needing to enter a sudo password.
+
+```shell
+> sudo setfacl -m $USER:rw /etc/hosts
+```
+
+[See this Q/A and the security implications of doing so](https://askubuntu.com/questions/895640/can-i-edit-hosts-without-sudo)

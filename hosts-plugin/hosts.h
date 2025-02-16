@@ -10,15 +10,27 @@ typedef struct {
 	/* panel widgets */
 	GtkWidget       *ebox;
 	GtkWidget       *hvbox;
-	GtkWidget       *label;
+	GtkWidget       *icon;
+	GtkWidget		*button;
 
-	/* sample settings */
-	gchar           *setting1;
-	gint             setting2;
-	gboolean         setting3;
+	// hostnames
+	gchar           **names;
+	// which hosts are enabled
+	gboolean         *enabled;
+
 } HostsPlugin;
 
-void sample_save (XfcePanelPlugin *plugin, HostsPlugin *sample);
+// Structure to indicate which host is being toggled
+typedef struct {
+	HostsPlugin *hosts;
+	guint index;
+} HostToggleData;
+
+// Save configuration
+void hosts_save(XfcePanelPlugin *plugin, HostsPlugin *hosts);
+
+// Update the /etc/hosts file
+void etc_hosts_sync(HostsPlugin *hosts);
 
 G_END_DECLS
 

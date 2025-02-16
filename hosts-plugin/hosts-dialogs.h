@@ -1,11 +1,11 @@
-#ifndef __SAMPLE_DIALOGS_H__
-#define __SAMPLE_DIALOGS_H__
+#ifndef __HOSTS_DIALOGS_H__
+#define __HOSTS_DIALOGS_H__
 
 G_BEGIN_DECLS
 
-void sample_configure(XfcePanelPlugin *plugin, SamplePlugin *sample);
+void hosts_configure(XfcePanelPlugin *plugin, HostsPlugin *sample);
 
-void sample_about(XfcePanelPlugin *plugin);
+void hosts_about(XfcePanelPlugin *plugin);
 
 G_END_DECLS
 
