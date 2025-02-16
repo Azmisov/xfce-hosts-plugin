@@ -19,12 +19,12 @@
 #define DEFAULT_SETTING3 FALSE
 
 /* prototypes */
-static void sample_construct (XfcePanelPlugin *plugin);
+static void hosts_construct (XfcePanelPlugin *plugin);
 
 /* register the plugin */
-XFCE_PANEL_PLUGIN_REGISTER (sample_construct);
+XFCE_PANEL_PLUGIN_REGISTER (hosts_construct);
 
-void sample_save (XfcePanelPlugin *plugin, SamplePlugin    *sample){
+void hosts_save (XfcePanelPlugin *plugin, HostsPlugin    *sample){
 	XfceRc *rc;
 	gchar  *file;
 	/* get the config file location */
@@ -48,7 +48,7 @@ void sample_save (XfcePanelPlugin *plugin, SamplePlugin    *sample){
 	}
 }
 
-static void sample_read (SamplePlugin *sample) {
+static void hosts_read (HostsPlugin *sample) {
 	XfceRc      *rc;
 	gchar       *file;
 	const gchar *value;
@@ -79,16 +79,16 @@ static void sample_read (SamplePlugin *sample) {
 	sample->setting3 = DEFAULT_SETTING3;
 }
 
-static SamplePlugin *sample_new (XfcePanelPlugin *plugin){
-	SamplePlugin   *sample;
+static HostsPlugin *hosts_new (XfcePanelPlugin *plugin){
+	HostsPlugin   *sample;
 	GtkOrientation  orientation;
 	GtkWidget      *label;
 	/* allocate memory for the plugin structure */
-	sample = g_slice_new0 (SamplePlugin);
+	sample = g_slice_new0 (HostsPlugin);
 	/* pointer to plugin */
 	sample->plugin = plugin;
 	/* read the user settings */
-	sample_read (sample);
+	hosts_read (sample);
 	/* get the current orientation */
 	orientation = xfce_panel_plugin_get_orientation (plugin);
 	/* create some panel widgets */
@@ -107,7 +107,7 @@ static SamplePlugin *sample_new (XfcePanelPlugin *plugin){
 	return sample;
 }
 
-static void sample_free (XfcePanelPlugin *plugin, SamplePlugin *sample) {
+static void hosts_free (XfcePanelPlugin *plugin, HostsPlugin *sample) {
 	GtkWidget *dialog;
 	/* check if the dialog is still open. if so, destroy it */
 	dialog = g_object_get_data (G_OBJECT (plugin), "dialog");
@@ -119,18 +119,18 @@ static void sample_free (XfcePanelPlugin *plugin, SamplePlugin *sample) {
 	if (G_LIKELY (sample->setting1 != NULL))
 		g_free (sample->setting1);
 	/* free the plugin structure */
-	g_slice_free (SamplePlugin, sample);
+	g_slice_free (HostsPlugin, sample);
 }
 
-static void sample_orientation_changed (
-	XfcePanelPlugin *plugin, GtkOrientation orientation, SamplePlugin *sample
+static void hosts_orientation_changed (
+	XfcePanelPlugin *plugin, GtkOrientation orientation, HostsPlugin *sample
 ){
   /* change the orientation of the box */
   gtk_orientable_set_orientation(GTK_ORIENTABLE(sample->hvbox), orientation);
 }
 
-static gboolean sample_size_changed (
-	XfcePanelPlugin *plugin, gint size, SamplePlugin *sample
+static gboolean hosts_size_changed (
+	XfcePanelPlugin *plugin, gint size, HostsPlugin *sample
 ){
 	GtkOrientation orientation;
 	/* get the orientation of the plugin */
@@ -144,25 +144,33 @@ static gboolean sample_size_changed (
 	return TRUE;
 }
 
-static void sample_construct (XfcePanelPlugin *plugin) {
-	SamplePlugin *sample;
+static void hosts_construct (XfcePanelPlugin *plugin) {
+	DBG("Initializing new plugin structure");
+	HostsPlugin *hosts;
+
 	/* setup transation domain */
 	xfce_textdomain(GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR, "UTF-8");
+
 	/* create the plugin */
-	sample = sample_new (plugin);
+	hosts = hosts_new(plugin);
+
 	/* add the ebox to the panel */
-	gtk_container_add (GTK_CONTAINER (plugin), sample->ebox);
+	gtk_container_add(GTK_CONTAINER(plugin), hosts->ebox);
+
 	/* show the panel's right-click menu on this ebox */
-	xfce_panel_plugin_add_action_widget (plugin, sample->ebox);
+	xfce_panel_plugin_add_action_widget(plugin, hosts->ebox);
+
 	/* connect plugin signals */
-	g_signal_connect (G_OBJECT (plugin), "free-data", G_CALLBACK (sample_free), sample);
-	g_signal_connect (G_OBJECT (plugin), "save", G_CALLBACK (sample_save), sample);
-	g_signal_connect (G_OBJECT (plugin), "size-changed", G_CALLBACK (sample_size_changed), sample);
-	g_signal_connect (G_OBJECT (plugin), "orientation-changed", G_CALLBACK (sample_orientation_changed), sample);
+	g_signal_connect(G_OBJECT(plugin), "free-data", G_CALLBACK (hosts_free), hosts);
+	g_signal_connect(G_OBJECT(plugin), "save", G_CALLBACK (hosts_save), hosts);
+	g_signal_connect(G_OBJECT(plugin), "size-changed", G_CALLBACK (hosts_size_changed), hosts);
+	g_signal_connect(G_OBJECT(plugin), "orientation-changed", G_CALLBACK (hosts_orientation_changed), hosts);
+
 	/* show the configure menu item and connect signal */
 	xfce_panel_plugin_menu_show_configure (plugin);
-	g_signal_connect (G_OBJECT (plugin), "configure-plugin", G_CALLBACK (sample_configure), sample);
+	g_signal_connect (G_OBJECT (plugin), "configure-plugin", G_CALLBACK (hosts_configure), hosts);
+
 	/* show the about menu item and connect signal */
 	xfce_panel_plugin_menu_show_about (plugin);
-	g_signal_connect (G_OBJECT (plugin), "about", G_CALLBACK (sample_about), NULL);
+	g_signal_connect (G_OBJECT (plugin), "about", G_CALLBACK (hosts_about), NULL);
 }

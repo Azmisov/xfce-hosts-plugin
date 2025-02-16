@@ -16,10 +16,9 @@ typedef struct {
 	gchar           *setting1;
 	gint             setting2;
 	gboolean         setting3;
-}
-SamplePlugin;
+} HostsPlugin;
 
-void sample_save (XfcePanelPlugin *plugin, SamplePlugin *sample);
+void sample_save (XfcePanelPlugin *plugin, HostsPlugin *sample);
 
 G_END_DECLS
 
